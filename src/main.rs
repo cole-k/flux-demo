@@ -10,22 +10,22 @@ flux_rs::defs! {
 extern crate flux_alloc;
 extern crate flux_core;
 
-pub mod anf;
-pub mod arrays;
-pub mod basics;
-pub mod borrows;
-pub mod csv;
-pub mod demo;
-pub mod dotproduct;
-pub mod kmeans;
-pub mod lists;
-pub mod mapreduce;
+// pub mod anf;
+// pub mod arrays;
+// pub mod basics;
+// pub mod borrows;
+// pub mod csv;
+// pub mod demo;
+// pub mod dotproduct;
+// pub mod kmeans;
+// pub mod lists;
+// pub mod mapreduce;
 pub mod neural;
 pub mod rvec;
 // pub mod spec;
-pub mod typestate;
-pub mod uninit;
-pub mod vectors;
+// pub mod typestate;
+// pub mod uninit;
+// pub mod vectors;
 
 fn main() {
     return;

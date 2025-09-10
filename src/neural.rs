@@ -11,7 +11,15 @@ fn sigmoid(x: f64) -> f64 {
     1.0 / (1.0 + (-x).exp())
 }
 
-#[spec(fn(&RVec<f64>[@n], &RVec<f64>[n]) -> f64)]
+// NOTE: We don't refine f64 due to a bug in the implementation.
+#[vars(
+    $wk0(n, m) = [n == m];
+    $wk1(n, m) = [];
+)]
+#[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
+       requires $wk0(n, m)
+       ensures  $wk1(n, m)
+)]
 fn dot_product(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
     let mut sum = 0.0;
     for i in 0..a.len() {
@@ -20,7 +28,14 @@ fn dot_product(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
     sum
 }
 
-#[spec(fn(&RVec<f64>[@n], &RVec<f64>[n]) -> f64)]
+#[vars(
+    $wk0(n, m) = [n == m];
+    $wk1(n, m) = [];
+)]
+#[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
+       requires $wk0(n, m)
+       ensures  $wk1(n, m)
+)]
 fn dot_product2(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
     (0..a.len()).map(|i| (a[i] * b[i])).sum()
 }
@@ -46,8 +61,16 @@ struct Layer {
     outputs: RVec<f64>,
 }
 
-#[spec(fn(n: usize, f:F) -> RVec<A>[n]
-       where F: FnMut(usize{v:0<=v && v < n}) -> A)]
+#[vars(
+    $wk0(n) = [];
+    $wk1(v, n) = [0 <= v, v < n];
+    $wk2(v, n) = [v == n];
+)]
+#[spec(fn(n: usize, f:F) -> RVec<A>[#v]
+       requires $wk0(n)
+       ensures $wk2(v, n)
+       where F: FnMut(usize{v: $wk1(v, n)}) -> A
+)]
 fn init0<F, A>(n: usize, mut f: F) -> RVec<A>
 where
     F: FnMut(usize) -> A,
@@ -61,8 +84,16 @@ where
     res
 }
 
-#[spec(fn(n: usize, f:F) -> RVec<A>[n]
-       where F: FnMut(usize{v:0<=v && v < n}) -> A)]
+#[vars(
+    $wk0(n) = [];
+    $wk1(v, n) = [0 <= v, v < n];
+    $wk2(v, n) = [v == n];
+)]
+#[spec(fn(n: usize, f:F) -> RVec<A>[#v]
+       requires $wk0(n)
+       ensures $wk2(v, n)
+       where F: FnMut(usize{v: $wk1(v, n)}) -> A
+)]
 fn init<F, A>(n: usize, mut f: F) -> RVec<A>
 where
     F: FnMut(usize) -> A,
@@ -74,7 +105,16 @@ where
     res
 }
 
-#[spec(fn(n: usize, f:F) -> RVec<A>[n] where F: FnMut(usize{v:0<=v && v < n}) -> A)]
+#[vars(
+    $wk0(n) = [];
+    $wk1(v, n) = [0 <= v, v < n];
+    $wk2(v, n) = [v == n];
+)]
+#[spec(fn(n: usize, f:F) -> RVec<A>[#v]
+       requires $wk0(n)
+       ensures $wk2(v, n)
+       where F: FnMut(usize{v: $wk1(v, n)}) -> A
+)]
 fn init2<F, A>(n: usize, mut f: F) -> RVec<A>
 where
     F: FnMut(usize) -> A,
@@ -82,7 +122,14 @@ where
     (0..n).map(|i| f(i)).collect()
 }
 
-#[spec(fn(input_size: usize, output_size: usize) -> RVec<RVec<f64>[input_size]>[output_size])]
+#[vars(
+    $wk0(input_size, output_size) = [];
+    $wk1(v, input_size, output_size) = [v == output_size];
+)]
+#[spec(fn(input_size: usize, output_size: usize) -> RVec<RVec<f64>[input_size]>[#v]
+       requires $wk0(input_size, output_size)
+       ensures $wk1(v, input_size, output_size)
+)]
 fn mk_weights(input_size: usize, output_size: usize) -> RVec<RVec<f64>> {
     let mut rng = rand::thread_rng();
     let weights = init(output_size, |_| {
@@ -92,7 +139,14 @@ fn mk_weights(input_size: usize, output_size: usize) -> RVec<RVec<f64>> {
 }
 
 impl Layer {
-    #[spec(fn(i: usize, o: usize) -> Layer[i, o])]
+    #[vars(
+        $wk0(i, o) = [];
+        $wk1(l, i, o) = [l == Layer{ i : i, o : o }];
+    )]
+    #[spec(fn(i: usize, o: usize) -> Layer[#l]
+           requires $wk0(i, o)
+           ensures  $wk1(l, i, o)
+    )]
     fn new(i: usize, o: usize) -> Layer {
         let mut rng = rand::thread_rng();
         Layer {
@@ -104,7 +158,14 @@ impl Layer {
         }
     }
 
-    #[spec(fn(&mut Layer[@l], &RVec<f64>[l.i]) )]
+    #[vars(
+        $wk0(l, n) = [n == l.i];
+        $wk1(l, n) = [];
+    )]
+    #[spec(fn(&mut Layer[@l], &RVec<f64>[@n])
+           requires $wk0(l, n)
+           ensures  $wk1(l, n)
+    )]
     fn forward(&mut self, input: &RVec<f64>) {
         (0..self.num_outputs).for_each(|i| {
             let weighted_input = dot_product(&self.weight[i], input);
@@ -112,7 +173,14 @@ impl Layer {
         })
     }
 
-    #[spec(fn(&mut Layer[@l], &RVec<f64>[l.i], &RVec<f64>[l.o], _) -> RVec<f64>[l.i])]
+    #[vars(
+        $wk0(l, m, n) = [m == l.i, n == l.o];
+        $wk1(v, l, m, n) = [v == l.i];
+    )]
+    #[spec(fn(&mut Layer[@l], &RVec<f64>[@m], &RVec<f64>[@n], _) -> RVec<f64>[#v]
+           requires $wk0(l, m, n)
+           ensures  $wk1(v, l, m, n)
+    )]
     fn backward(&mut self, inputs: &RVec<f64>, error: &RVec<f64>, learning_rate: f64) -> RVec<f64> {
         let mut input_error = rvec![0.0; inputs.len()];
         for i in 0..self.num_outputs {
@@ -126,7 +194,14 @@ impl Layer {
     }
 }
 
-#[spec(fn(&RVec<f64>[@n], &RVec<f64>[n]) -> f64)]
+#[vars(
+    $wk0(n, m) = [n == m];
+    $wk1(n, m) = [];
+)]
+#[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
+       requires $wk0(n, m)
+       ensures  $wk1(n, m)
+)]
 fn mean_squared_error(predicted: &RVec<f64>, actual: &RVec<f64>) -> f64 {
     (0..predicted.len())
         .map(|i| (predicted[i] - actual[i]).powi(2))
@@ -147,7 +222,14 @@ enum NeuralNetwork {
 
 impl NeuralNetwork {
     /// Create a new neural network with the given input size, hidden layer sizes, and output size.
-    #[spec(fn(input_size: usize, hidden_sizes: &[usize], output_size: usize) -> NeuralNetwork[input_size, output_size])]
+    #[vars(
+        $wk0(i, o) = [];
+        $wk1(n, i, o) = [n == NeuralNetwork{ i : i, o : o }];
+    )]
+    #[spec(fn(input_size: usize, hidden_sizes: &[usize], output_size: usize) -> NeuralNetwork[#n]
+           requires $wk0(input_size, output_size)
+           ensures  $wk1(n, input_size, output_size)
+    )]
     fn new(input_size: usize, hidden_sizes: &[usize], output_size: usize) -> NeuralNetwork {
         if hidden_sizes.len() == 0 {
             NeuralNetwork::Last(Layer::new(input_size, output_size))
@@ -159,7 +241,14 @@ impl NeuralNetwork {
         }
     }
 
-    #[spec(fn(&mut NeuralNetwork[@i, @o], &RVec<f64>[i]) -> RVec<f64>[o])]
+    #[vars(
+        $wk0(i, o, n) = [n == i];
+        $wk1(v, i, o, n) = [v == o];
+    )]
+    #[spec(fn(&mut NeuralNetwork[@i, @o], &RVec<f64>[@n]) -> RVec<f64>[#v]
+           requires $wk0(i, o, n)
+           ensures  $wk1(v, i, o, n)
+    )]
     fn forward(&mut self, input: &RVec<f64>) -> RVec<f64> {
         match self {
             NeuralNetwork::Last(layer) => {
@@ -175,7 +264,14 @@ impl NeuralNetwork {
 
     /// Backpropagation algorithm: assumes we have already done a "forwards" pass with
     /// the results stored in each `Layer`'s `outputs` field.
-    #[spec(fn(&mut NeuralNetwork[@i, @o], &RVec<f64>[i], &RVec<f64>[o], _) -> RVec<f64>[i])]
+    #[vars(
+        $wk0(i, o, n, m) = [n == i, m == o];
+        $wk1(v, i, o, n, m) = [v == i];
+    )]
+    #[spec(fn(&mut NeuralNetwork[@i, @o], &RVec<f64>[@n], &RVec<f64>[@m], _) -> RVec<f64>[#v]
+           requires $wk0(i, o, n, m)
+           ensures  $wk1(v, i, o, n, m)
+    )]
     fn backward(
         &mut self,
         inputs: &RVec<f64>,
