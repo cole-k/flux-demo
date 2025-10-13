@@ -26,6 +26,7 @@ pub mod rvec;
 // pub mod typestate;
 // pub mod uninit;
 // pub mod vectors;
+pub mod range;
 
 fn main() {
     return;

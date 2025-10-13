@@ -2,6 +2,7 @@ use crate::rvec::{self, AsRVec as _, RVec, rvec};
 use flux_rs::assert;
 use flux_rs::attrs::*;
 use rand::{Rng, rngs::ThreadRng};
+use crate::range::{spread_i32, spread_usize};
 
 fn test() {
     assert(10 < 20)
@@ -22,7 +23,7 @@ fn sigmoid(x: f64) -> f64 {
 )]
 fn dot_product(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
     let mut sum = 0.0;
-    for i in 0..a.len() {
+    for i in spread_usize(0, a.len()) {
         sum += a[i] * b[i];
     }
     sum
@@ -37,7 +38,7 @@ fn dot_product(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
        ensures  $wk1(n, m)
 )]
 fn dot_product2(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
-    (0..a.len()).map(|i| (a[i] * b[i])).sum()
+    spread_usize(0,a.len()).map(|i| (a[i] * b[i])).sum()
 }
 
 // HT: https://byteblog.medium.com/building-a-simple-neural-network-from-scratch-in-rust-3a7b12ed30a9
@@ -99,7 +100,7 @@ where
     F: FnMut(usize) -> A,
 {
     let mut res = RVec::new();
-    for i in 0..n {
+    for i in spread_usize(0, n) {
         res.push(f(i));
     }
     res
@@ -119,7 +120,7 @@ fn init2<F, A>(n: usize, mut f: F) -> RVec<A>
 where
     F: FnMut(usize) -> A,
 {
-    (0..n).map(|i| f(i)).collect()
+    spread_usize(0, n).map(|i| f(i)).collect()
 }
 
 #[vars(
@@ -167,7 +168,7 @@ impl Layer {
            ensures  $wk1(l, n)
     )]
     fn forward(&mut self, input: &RVec<f64>) {
-        (0..self.num_outputs).for_each(|i| {
+        spread_usize(0, self.num_outputs).for_each(|i| {
             let weighted_input = dot_product(&self.weight[i], input);
             self.outputs[i] = sigmoid(weighted_input + self.bias[i])
         })
@@ -183,8 +184,8 @@ impl Layer {
     )]
     fn backward(&mut self, inputs: &RVec<f64>, error: &RVec<f64>, learning_rate: f64) -> RVec<f64> {
         let mut input_error = rvec![0.0; inputs.len()];
-        for i in 0..self.num_outputs {
-            for j in 0..self.num_inputs {
+        for i in spread_usize(0,self.num_outputs) {
+            for j in spread_usize(0, self.num_inputs) {
                 input_error[j] += self.weight[i][j] * error[i];
                 self.weight[i][j] -= learning_rate * error[i] * inputs[j];
             }
@@ -203,7 +204,7 @@ impl Layer {
        ensures  $wk1(n, m)
 )]
 fn mean_squared_error(predicted: &RVec<f64>, actual: &RVec<f64>) -> f64 {
-    (0..predicted.len())
+    spread_usize(0, predicted.len())
         .map(|i| (predicted[i] - actual[i]).powi(2))
         .sum::<f64>()
         / predicted.len() as f64
@@ -280,7 +281,7 @@ impl NeuralNetwork {
     ) -> RVec<f64> {
         match self {
             NeuralNetwork::Last(layer) => {
-                let error = (0..layer.num_outputs)
+                let error = spread_usize(0, layer.num_outputs)
                     .map(|i| layer.outputs[i] - target[i])
                     .collect();
                 layer.backward(inputs, &error, learning_rate)
