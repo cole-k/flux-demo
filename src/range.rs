@@ -1,4 +1,5 @@
 use flux_rs::attrs::*;
+use crate::rvec::RVec;
 
 #[refined_by(start: int, end: int)]
 pub struct UsizeRange {
@@ -108,5 +109,65 @@ impl Iterator for I32Range {
             self.start = self.start + 1;
             res
         }
+    }
+}
+
+impl UsizeRange {
+    #[trusted]
+    pub fn map_f64<'a, F: FnMut(usize) -> f64 + 'a>(self, f: F) -> UFMap<'a> {
+        UFMap {
+            iter: self,
+            mapper: Box::new(f),
+        }
+    }
+
+    #[trusted]
+    pub fn map_rvec_f64<'a, F: FnMut(usize) -> RVec<f64> + 'a>(self, f: F) -> URFMap<'a> {
+        URFMap {
+            iter: self,
+            mapper: Box::new(f),
+        }
+    }
+}
+
+#[refined_by(inner: UsizeRange)]
+pub struct UFMap<'a> {
+    iter: UsizeRange,
+    mapper: Box<dyn FnMut(usize) -> f64 + 'a>,
+}
+
+#[assoc(
+    fn size(x: UFMap) -> int { <UsizeRange as Iterator>::size(x.inner) }
+    fn done(x: UFMap) -> bool { <UsizeRange as Iterator>::done(x.inner) }
+    fn step(x: UFMap, y: UFMap) -> bool { <UsizeRange as Iterator>::step(x.inner, y.inner) }
+)]
+impl<'a> Iterator for UFMap<'a> {
+    type Item = f64;
+    #[spec(fn(self: &mut Self[@curr_s]) -> Option<f64>[!<Self as Iterator>::done(curr_s)]
+           ensures self: Self{next_s: <Self as Iterator>::step(curr_s, next_s)})]
+    fn next(&mut self) -> Option<f64> {
+        self.iter.next()
+            .map(|u| (self.mapper)(u))
+    }
+}
+
+#[refined_by(inner: UsizeRange)]
+pub struct URFMap<'a> {
+    iter: UsizeRange,
+    mapper: Box<dyn FnMut(usize) -> RVec<f64> + 'a>,
+}
+
+#[assoc(
+    fn size(x: URFMap) -> int { <UsizeRange as Iterator>::size(x.inner) }
+    fn done(x: URFMap) -> bool { <UsizeRange as Iterator>::done(x.inner) }
+    fn step(x: URFMap, y: URFMap) -> bool { <UsizeRange as Iterator>::step(x.inner, y.inner) }
+)]
+impl<'a> Iterator for URFMap<'a> {
+    type Item = RVec<f64>;
+    #[spec(fn(self: &mut Self[@curr_s]) -> Option<RVec<f64>>[!<Self as Iterator>::done(curr_s)]
+           ensures self: Self{next_s: <Self as Iterator>::step(curr_s, next_s)})]
+    fn next(&mut self) -> Option<RVec<f64>> {
+        self.iter.next()
+            .map(|u| (self.mapper)(u))
     }
 }

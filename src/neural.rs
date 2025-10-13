@@ -38,7 +38,7 @@ fn dot_product(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
        ensures  $wk1(n, m)
 )]
 fn dot_product2(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
-    spread_usize(0,a.len()).map(|i| (a[i] * b[i])).sum()
+    spread_usize(0,a.len()).map_f64(|i| (a[i] * b[i])).sum()
 }
 
 // HT: https://byteblog.medium.com/building-a-simple-neural-network-from-scratch-in-rust-3a7b12ed30a9
@@ -90,14 +90,14 @@ where
     $wk1(v, n) = [0 <= v, v < n];
     $wk2(v, n) = [v == n];
 )]
-#[spec(fn(n: usize, f:F) -> RVec<A>[#v]
+#[spec(fn(n: usize, f:F) -> RVec<f64>[#v]
        requires $wk0(n)
        ensures $wk2(v, n)
-       where F: FnMut(usize{v: $wk1(v, n)}) -> A
+       where F: FnMut(usize{v: $wk1(v, n)}) -> f64
 )]
-fn init<F, A>(n: usize, mut f: F) -> RVec<A>
+fn init_rvec<F>(n: usize, mut f: F) -> RVec<f64>
 where
-    F: FnMut(usize) -> A,
+    F: FnMut(usize) -> f64,
 {
     let mut res = RVec::new();
     for i in spread_usize(0, n) {
@@ -111,16 +111,37 @@ where
     $wk1(v, n) = [0 <= v, v < n];
     $wk2(v, n) = [v == n];
 )]
-#[spec(fn(n: usize, f:F) -> RVec<A>[#v]
+#[spec(fn(n: usize, f:F) -> RVec<f64>[#v]
        requires $wk0(n)
        ensures $wk2(v, n)
-       where F: FnMut(usize{v: $wk1(v, n)}) -> A
+       where F: FnMut(usize{v: $wk1(v, n)}) -> RVec<f64>
 )]
-fn init2<F, A>(n: usize, mut f: F) -> RVec<A>
+fn init_rvec_rvec<F>(n: usize, mut f: F) -> RVec<RVec<f64>>
 where
-    F: FnMut(usize) -> A,
+    F: FnMut(usize) -> RVec<f64>,
 {
-    spread_usize(0, n).map(|i| f(i)).collect()
+    let mut res = RVec::new();
+    for i in spread_usize(0, n) {
+        res.push(f(i));
+    }
+    res
+}
+
+#[vars(
+    $wk0(n) = [];
+    $wk1(v, n) = [0 <= v, v < n];
+    $wk2(v, n) = [v == n];
+)]
+#[spec(fn(n: usize, f:F) -> RVec<RVec<f64>>[#v]
+       requires $wk0(n)
+       ensures $wk2(v, n)
+       where F: FnMut(usize{v: $wk1(v, n)}) -> RVec<f64>
+)]
+fn init2<F>(n: usize, mut f: F) -> RVec<RVec<f64>>
+where
+    F: FnMut(usize) -> RVec<f64>,
+{
+    spread_usize(0, n).map_rvec_f64(|i| f(i)).collect()
 }
 
 #[vars(
@@ -133,8 +154,8 @@ where
 )]
 fn mk_weights(input_size: usize, output_size: usize) -> RVec<RVec<f64>> {
     let mut rng = rand::thread_rng();
-    let weights = init(output_size, |_| {
-        init(input_size, |_| rng.gen_range(-1.0..1.0))
+    let weights = init_rvec_rvec(output_size, |_| {
+        init_rvec(input_size, |_| rng.gen_range(-1.0..1.0))
     });
     weights
 }
@@ -153,9 +174,9 @@ impl Layer {
         Layer {
             num_inputs: i,
             num_outputs: o,
-            weight: init(o, |_| init(i, |_| rng.gen_range(-1.0..1.0))),
-            bias: init(o, |_| rng.gen_range(-1.0..1.0)),
-            outputs: init(o, |_| 0.0),
+            weight: init_rvec_rvec(o, |_| init_rvec(i, |_| rng.gen_range(-1.0..1.0))),
+            bias: init_rvec(o, |_| rng.gen_range(-1.0..1.0)),
+            outputs: init_rvec(o, |_| 0.0),
         }
     }
 
@@ -205,7 +226,7 @@ impl Layer {
 )]
 fn mean_squared_error(predicted: &RVec<f64>, actual: &RVec<f64>) -> f64 {
     spread_usize(0, predicted.len())
-        .map(|i| (predicted[i] - actual[i]).powi(2))
+        .map_f64(|i| (predicted[i] - actual[i]).powi(2))
         .sum::<f64>()
         / predicted.len() as f64
 }
@@ -282,7 +303,7 @@ impl NeuralNetwork {
         match self {
             NeuralNetwork::Last(layer) => {
                 let error = spread_usize(0, layer.num_outputs)
-                    .map(|i| layer.outputs[i] - target[i])
+                    .map_f64(|i| layer.outputs[i] - target[i])
                     .collect();
                 layer.backward(inputs, &error, learning_rate)
             }
