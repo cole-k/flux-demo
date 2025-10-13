@@ -9,6 +9,7 @@ pub struct UsizeRange {
     end: usize,
 }
 
+#[spec(fn(start: usize, end: usize) -> UsizeRange[start, end])]
 pub fn spread_usize(start: usize, end: usize) -> UsizeRange {
     UsizeRange {
         start,
@@ -16,6 +17,7 @@ pub fn spread_usize(start: usize, end: usize) -> UsizeRange {
     }
 }
 
+#[spec(fn(start: usize, end: usize) -> I32Range[start, end])]
 pub fn spread_i32(start: i32, end: i32) -> I32Range {
     I32Range {
         start,

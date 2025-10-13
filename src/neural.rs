@@ -111,7 +111,7 @@ where
     $wk1(v, n) = [0 <= v, v < n];
     $wk2(v, n) = [v == n];
 )]
-#[spec(fn(n: usize, f:F) -> RVec<f64>[#v]
+#[spec(fn(n: usize, f:F) -> RVec<RVec<f64>>[#v]
        requires $wk0(n)
        ensures $wk2(v, n)
        where F: FnMut(usize{v: $wk1(v, n)}) -> RVec<f64>
@@ -155,7 +155,8 @@ where
 fn mk_weights(input_size: usize, output_size: usize) -> RVec<RVec<f64>> {
     let mut rng = rand::thread_rng();
     let weights = init_rvec_rvec(output_size, |_| {
-        init_rvec(input_size, |_| rng.gen_range(-1.0..1.0))
+        // replaced `rng.gen_range(-1.0..1.0)` with `0.0`
+        init_rvec(input_size, |_| 0.0)
     });
     weights
 }
@@ -174,8 +175,10 @@ impl Layer {
         Layer {
             num_inputs: i,
             num_outputs: o,
-            weight: init_rvec_rvec(o, |_| init_rvec(i, |_| rng.gen_range(-1.0..1.0))),
-            bias: init_rvec(o, |_| rng.gen_range(-1.0..1.0)),
+            // replaced `rng.gen_range(-1.0..1.0)` with `0.0`
+            weight: init_rvec_rvec(o, |_| init_rvec(i, |_| 0.0)),
+            // replaced `rng.gen_range(-1.0..1.0)` with `0.0`
+            bias: init_rvec(o, |_| 0.0),
             outputs: init_rvec(o, |_| 0.0),
         }
     }
