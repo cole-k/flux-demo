@@ -119,9 +119,9 @@ impl UsizeRange {
     #[spec(
         fn(Self[@s], f: F) -> UFMap[s]
         where
-            F: FnMut(<UsizeRange as Iterator>::Item{item: <UsizeRange as Iterator>::valid_item(s, item)}) -> f64
+            F: FnMut(usize{v: s.start <= v && v < s.end  }) -> f64
     )]
-    pub fn map_f64<'a, F: FnMut(<UsizeRange as Iterator>::Item) -> f64 + 'a>(self, f: F) -> UFMap<'a> {
+    pub fn map_f64<'a, F: FnMut(usize) -> f64 + 'a>(self, f: F) -> UFMap<'a> {
         UFMap {
             iter: self,
             mapper: Box::new(f),
@@ -132,9 +132,9 @@ impl UsizeRange {
     #[spec(
         fn(Self[@s], f: F) -> URFMap[s]
         where
-            F: FnMut(<UsizeRange as Iterator>::Item{item: <UsizeRange as Iterator>::valid_item(s, item)}) -> RVec<f64>
+            F: FnMut(usize{v: s.start <= v && v < s.end  }) -> RVec<f64>
     )]
-    pub fn map_rvec_f64<'a, F: FnMut(<UsizeRange as Iterator>::Item) -> RVec<f64> + 'a>(self, f: F) -> URFMap<'a> {
+    pub fn map_rvec_f64<'a, F: FnMut(usize) -> RVec<f64> + 'a>(self, f: F) -> URFMap<'a> {
         URFMap {
             iter: self,
             mapper: Box::new(f),
