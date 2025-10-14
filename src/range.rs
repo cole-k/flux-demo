@@ -116,6 +116,11 @@ impl Iterator for I32Range {
 
 impl UsizeRange {
     #[trusted]
+    #[spec(
+        fn(Self[@s], f: F) -> UFMap[s]
+        where
+            F: FnMut(Self::Item{item: <Self as Iterator>::valid_item(s, item)}) -> f64
+    )]
     pub fn map_f64<'a, F: FnMut(usize) -> f64 + 'a>(self, f: F) -> UFMap<'a> {
         UFMap {
             iter: self,
@@ -124,6 +129,11 @@ impl UsizeRange {
     }
 
     #[trusted]
+    #[spec(
+        fn(Self[@s], f: F) -> URFMap[s]
+        where
+            F: FnMut(Self::Item{item: <Self as Iterator>::valid_item(s, item)}) -> RVec<f64>
+    )]
     pub fn map_rvec_f64<'a, F: FnMut(usize) -> RVec<f64> + 'a>(self, f: F) -> URFMap<'a> {
         URFMap {
             iter: self,
