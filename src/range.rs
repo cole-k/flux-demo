@@ -17,7 +17,7 @@ pub fn spread_usize(start: usize, end: usize) -> UsizeRange {
     }
 }
 
-#[spec(fn(start: usize, end: usize) -> I32Range[start, end])]
+#[spec(fn(start: i32, end: i32) -> I32Range[start, end])]
 pub fn spread_i32(start: i32, end: i32) -> I32Range {
     I32Range {
         start,
@@ -119,9 +119,9 @@ impl UsizeRange {
     #[spec(
         fn(Self[@s], f: F) -> UFMap[s]
         where
-            F: FnMut(Self::Item{item: <Self as Iterator>::valid_item(s, item)}) -> f64
+            F: FnMut(<UsizeRange as Iterator>::Item{item: <UsizeRange as Iterator>::valid_item(s, item)}) -> f64
     )]
-    pub fn map_f64<'a, F: FnMut(usize) -> f64 + 'a>(self, f: F) -> UFMap<'a> {
+    pub fn map_f64<'a, F: FnMut(<UsizeRange as Iterator>::Item) -> f64 + 'a>(self, f: F) -> UFMap<'a> {
         UFMap {
             iter: self,
             mapper: Box::new(f),
@@ -132,9 +132,9 @@ impl UsizeRange {
     #[spec(
         fn(Self[@s], f: F) -> URFMap[s]
         where
-            F: FnMut(Self::Item{item: <Self as Iterator>::valid_item(s, item)}) -> RVec<f64>
+            F: FnMut(<UsizeRange as Iterator>::Item{item: <UsizeRange as Iterator>::valid_item(s, item)}) -> RVec<f64>
     )]
-    pub fn map_rvec_f64<'a, F: FnMut(usize) -> RVec<f64> + 'a>(self, f: F) -> URFMap<'a> {
+    pub fn map_rvec_f64<'a, F: FnMut(<UsizeRange as Iterator>::Item) -> RVec<f64> + 'a>(self, f: F) -> URFMap<'a> {
         URFMap {
             iter: self,
             mapper: Box::new(f),
@@ -144,6 +144,7 @@ impl UsizeRange {
 
 #[refined_by(inner: UsizeRange)]
 pub struct UFMap<'a> {
+    #[field[UsizeRange[inner]]]
     iter: UsizeRange,
     mapper: Box<dyn FnMut(usize) -> f64 + 'a>,
 }
@@ -155,6 +156,7 @@ pub struct UFMap<'a> {
 )]
 impl<'a> Iterator for UFMap<'a> {
     type Item = f64;
+    #[trusted]
     #[spec(fn(self: &mut Self[@curr_s]) -> Option<f64>[!<Self as Iterator>::done(curr_s)]
            ensures self: Self{next_s: <Self as Iterator>::step(curr_s, next_s)})]
     fn next(&mut self) -> Option<f64> {
@@ -165,6 +167,7 @@ impl<'a> Iterator for UFMap<'a> {
 
 #[refined_by(inner: UsizeRange)]
 pub struct URFMap<'a> {
+    #[field[UsizeRange[inner]]]
     iter: UsizeRange,
     mapper: Box<dyn FnMut(usize) -> RVec<f64> + 'a>,
 }
@@ -176,6 +179,7 @@ pub struct URFMap<'a> {
 )]
 impl<'a> Iterator for URFMap<'a> {
     type Item = RVec<f64>;
+    #[trusted]
     #[spec(fn(self: &mut Self[@curr_s]) -> Option<RVec<f64>>[!<Self as Iterator>::done(curr_s)]
            ensures self: Self{next_s: <Self as Iterator>::step(curr_s, next_s)})]
     fn next(&mut self) -> Option<RVec<f64>> {
