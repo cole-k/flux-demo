@@ -90,14 +90,14 @@ where
     $wk1(v, n) = [0 <= v, v < n];
     $wk2(v, n) = [v == n];
 )]
-#[spec(fn(n: usize, f:F) -> RVec<f64>[#v]
+#[spec(fn(n: usize, f:F) -> RVec<T>[#v]
        requires $wk0(n)
        ensures $wk2(v, n)
-       where F: FnMut(usize{v: $wk1(v, n)}) -> f64
+       where F: FnMut(usize{v: $wk1(v, n)}) -> T
 )]
-fn init_rvec<F>(n: usize, mut f: F) -> RVec<f64>
+fn init<T, F>(n: usize, mut f: F) -> RVec<T>
 where
-    F: FnMut(usize) -> f64,
+    F: FnMut(usize) -> T,
 {
     let mut res = RVec::new();
     for i in spread_usize(0, n) {
@@ -106,26 +106,47 @@ where
     res
 }
 
-#[vars(
-    $wk0(n) = [];
-    $wk1(v, n) = [0 <= v, v < n];
-    $wk2(v, n) = [v == n];
-)]
-#[spec(fn(n: usize, f:F) -> RVec<RVec<f64>>[#v]
-       requires $wk0(n)
-       ensures $wk2(v, n)
-       where F: FnMut(usize{v: $wk1(v, n)}) -> RVec<f64>
-)]
-fn init_rvec_rvec<F>(n: usize, mut f: F) -> RVec<RVec<f64>>
-where
-    F: FnMut(usize) -> RVec<f64>,
-{
-    let mut res = RVec::new();
-    for i in spread_usize(0, n) {
-        res.push(f(i));
-    }
-    res
-}
+// #[vars(
+//     $wk0(n) = [];
+//     $wk1(v, n) = [0 <= v, v < n];
+//     $wk2(v, n) = [v == n];
+// )]
+// #[spec(fn(n: usize, f:F) -> RVec<f64>[#v]
+//        requires $wk0(n)
+//        ensures $wk2(v, n)
+//        where F: FnMut(usize{v: $wk1(v, n)}) -> f64
+// )]
+// fn init_rvec<F>(n: usize, mut f: F) -> RVec<f64>
+// where
+//     F: FnMut(usize) -> f64,
+// {
+//     let mut res = RVec::new();
+//     for i in spread_usize(0, n) {
+//         res.push(f(i));
+//     }
+//     res
+// }
+// 
+// #[vars(
+//     $wk0(n) = [];
+//     $wk1(v, n) = [0 <= v, v < n];
+//     $wk2(v, n) = [v == n];
+// )]
+// #[spec(fn(n: usize, f:F) -> RVec<RVec<f64>>[#v]
+//        requires $wk0(n)
+//        ensures $wk2(v, n)
+//        where F: FnMut(usize{v: $wk1(v, n)}) -> RVec<f64>
+// )]
+// fn init_rvec_rvec<F>(n: usize, mut f: F) -> RVec<RVec<f64>>
+// where
+//     F: FnMut(usize) -> RVec<f64>,
+// {
+//     let mut res = RVec::new();
+//     for i in spread_usize(0, n) {
+//         res.push(f(i));
+//     }
+//     res
+// }
 
 #[vars(
     $wk0(n) = [];
@@ -154,9 +175,9 @@ where
 )]
 fn mk_weights(input_size: usize, output_size: usize) -> RVec<RVec<f64>> {
     let mut rng = rand::thread_rng();
-    let weights = init_rvec_rvec(output_size, |_| {
+    let weights = init(output_size, |_| {
         // replaced `rng.gen_range(-1.0..1.0)` with `0.0`
-        init_rvec(input_size, |_| 0.0)
+        init(input_size, |_| 0.0)
     });
     weights
 }
@@ -176,10 +197,10 @@ impl Layer {
             num_inputs: i,
             num_outputs: o,
             // replaced `rng.gen_range(-1.0..1.0)` with `0.0`
-            weight: init_rvec_rvec(o, |_| init_rvec(i, |_| 0.0)),
+            weight: init(o, |_| init(i, |_| 0.0)),
             // replaced `rng.gen_range(-1.0..1.0)` with `0.0`
-            bias: init_rvec(o, |_| 0.0),
-            outputs: init_rvec(o, |_| 0.0),
+            bias: init(o, |_| 0.0),
+            outputs: init(o, |_| 0.0),
         }
     }
 
