@@ -168,8 +168,9 @@ where
 #[vars(
     $wk0(input_size, output_size) = [];
     $wk1(v, input_size, output_size) = [v == output_size];
+    $wk2(inner, v, input_size, output_size) = [inner == input_size];
 )]
-#[spec(fn(input_size: usize, output_size: usize) -> RVec<RVec<f64>[input_size]>[#v]
+#[spec(fn(input_size: usize, output_size: usize) -> RVec<RVec<f64>{inner: $wk2(inner, v, input_size, output_size)}>[#v]
        requires $wk0(input_size, output_size)
        ensures $wk1(v, input_size, output_size)
 )]
