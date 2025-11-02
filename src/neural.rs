@@ -15,7 +15,7 @@ fn sigmoid(x: f64) -> f64 {
 // NOTE: We don't refine f64 due to a bug in the implementation.
 #[vars(
     $wk0(n, m) = [n == m];
-    $wk1(n, m) = [];
+    $wk1(n, m) = [true];
 )]
 #[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
        requires $wk0(n, m)
@@ -31,7 +31,7 @@ fn dot_product(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
 
 #[vars(
     $wk0(n, m) = [n == m];
-    $wk1(n, m) = [];
+    $wk1(n, m) = [true];
 )]
 #[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
        requires $wk0(n, m)
@@ -63,7 +63,7 @@ struct Layer {
 }
 
 #[vars(
-    $wk0(n) = [];
+    $wk0(n) = [true];
     $wk1(v, n) = [0 <= v, v < n];
     $wk2(v, n) = [v == n];
 )]
@@ -86,7 +86,7 @@ where
 }
 
 #[vars(
-    $wk0(n) = [];
+    $wk0(n) = [true];
     $wk1(v, n) = [0 <= v, v < n];
     $wk2(v, n) = [v == n];
 )]
@@ -149,7 +149,7 @@ where
 // }
 
 #[vars(
-    $wk0(n) = [];
+    $wk0(n) = [true];
     $wk1(v, n) = [0 <= v, v < n];
     $wk2(v, n) = [v == n];
 )]
@@ -166,7 +166,7 @@ where
 }
 
 #[vars(
-    $wk0(input_size, output_size) = [];
+    $wk0(input_size, output_size) = [true];
     $wk1(v, input_size, output_size) = [v == output_size];
     $wk2(inner, v, input_size, output_size) = [inner == input_size];
 )]
@@ -185,7 +185,7 @@ fn mk_weights(input_size: usize, output_size: usize) -> RVec<RVec<f64>> {
 
 impl Layer {
     #[vars(
-        $wk0(i, o) = [];
+        $wk0(i, o) = [true];
         $wk1(l, i, o) = [l == Layer{ i : i, o : o }];
     )]
     #[spec(fn(i: usize, o: usize) -> Layer[#l]
@@ -207,7 +207,7 @@ impl Layer {
 
     #[vars(
         $wk0(l, n) = [n == l.i];
-        $wk1(l, n) = [];
+        $wk1(l, n) = [true];
     )]
     #[spec(fn(&mut Layer[@l], &RVec<f64>[@n])
            requires $wk0(l, n)
@@ -243,7 +243,7 @@ impl Layer {
 
 #[vars(
     $wk0(n, m) = [n == m];
-    $wk1(n, m) = [];
+    $wk1(n, m) = [true];
 )]
 #[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
        requires $wk0(n, m)
@@ -270,7 +270,7 @@ enum NeuralNetwork {
 impl NeuralNetwork {
     /// Create a new neural network with the given input size, hidden layer sizes, and output size.
     #[vars(
-        $wk0(i, o) = [];
+        $wk0(i, o) = [true];
         $wk1(n, i, o) = [n == NeuralNetwork{ i : i, o : o }];
     )]
     #[spec(fn(input_size: usize, hidden_sizes: &[usize], output_size: usize) -> NeuralNetwork[#n]
