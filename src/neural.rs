@@ -15,7 +15,6 @@ fn sigmoid(x: f64) -> f64 {
 // NOTE: We don't refine f64 due to a bug in the implementation.
 #[vars(
     $wk0(n, m) = [n == m];
-    $wk1(n, m) = [true];
 )]
 #[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
        requires $wk0()[n, m]
@@ -30,7 +29,6 @@ fn dot_product(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
 
 #[vars(
     $wk0(n, m) = [n == m];
-    $wk1(n, m) = [true];
 )]
 #[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
        requires $wk0()[n, m]
@@ -205,7 +203,6 @@ impl Layer {
 
     #[vars(
         $wk0(l, n) = [n == l.i];
-        $wk1(l, n) = [true];
     )]
     #[spec(fn(&mut Layer[@l], &RVec<f64>[@n])
            requires $wk0()[l, n]
@@ -240,7 +237,6 @@ impl Layer {
 
 #[vars(
     $wk0(n, m) = [n == m];
-    $wk1(n, m) = [true];
 )]
 #[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
        requires $wk0()[n, m]
