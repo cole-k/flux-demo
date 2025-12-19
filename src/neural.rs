@@ -18,8 +18,7 @@ fn sigmoid(x: f64) -> f64 {
     $wk1(n, m) = [true];
 )]
 #[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
-       requires $wk0(n, m)
-       ensures  $wk1(n, m)
+       requires $wk0()[n, m]
 )]
 fn dot_product(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
     let mut sum = 0.0;
@@ -34,8 +33,7 @@ fn dot_product(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
     $wk1(n, m) = [true];
 )]
 #[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
-       requires $wk0(n, m)
-       ensures  $wk1(n, m)
+       requires $wk0()[n, m]
 )]
 fn dot_product2(a: &RVec<f64>, b: &RVec<f64>) -> f64 {
     spread_usize(0,a.len()).map_f64(|i| (a[i] * b[i])).sum()
@@ -68,9 +66,9 @@ struct Layer {
     $wk2(v, n) = [v == n];
 )]
 #[spec(fn(n: usize, f:F) -> RVec<A>[#v]
-       requires $wk0(n)
-       ensures $wk2(v, n)
-       where F: FnMut(usize{v: $wk1(v, n)}) -> A
+       requires $wk0()[n]
+       ensures $wk2(v)[n]
+       where F: FnMut(usize{v: $wk1(v)[n]}) -> A
 )]
 fn init0<F, A>(n: usize, mut f: F) -> RVec<A>
 where
@@ -91,9 +89,9 @@ where
     $wk2(v, n) = [v == n];
 )]
 #[spec(fn(n: usize, f:F) -> RVec<T>[#v]
-       requires $wk0(n)
-       ensures $wk2(v, n)
-       where F: FnMut(usize{v: $wk1(v, n)}) -> T
+       requires $wk0()[n]
+       ensures $wk2(v)[n]
+       where F: FnMut(usize{v: $wk1(v)[n]}) -> T
 )]
 fn init<T, F>(n: usize, mut f: F) -> RVec<T>
 where
@@ -107,14 +105,14 @@ where
 }
 
 // #[vars(
-//     $wk0(n) = [];
+//     $wk0(n) = [true];
 //     $wk1(v, n) = [0 <= v, v < n];
 //     $wk2(v, n) = [v == n];
 // )]
 // #[spec(fn(n: usize, f:F) -> RVec<f64>[#v]
-//        requires $wk0(n)
-//        ensures $wk2(v, n)
-//        where F: FnMut(usize{v: $wk1(v, n)}) -> f64
+//        requires $wk0()[n]
+//        ensures $wk2(v)[n]
+//        where F: fnmut(usize{v: $wk1(v)[n]}) -> f64
 // )]
 // fn init_rvec<F>(n: usize, mut f: F) -> RVec<f64>
 // where
@@ -128,14 +126,14 @@ where
 // }
 // 
 // #[vars(
-//     $wk0(n) = [];
+//     $wk0(n) = [true];
 //     $wk1(v, n) = [0 <= v, v < n];
 //     $wk2(v, n) = [v == n];
 // )]
 // #[spec(fn(n: usize, f:F) -> RVec<RVec<f64>>[#v]
-//        requires $wk0(n)
-//        ensures $wk2(v, n)
-//        where F: FnMut(usize{v: $wk1(v, n)}) -> RVec<f64>
+//        requires $wk0()[n]
+//        ensures $wk2(v)[n]
+//        where F: FnMut(usize{v: $wk1(v)[n]}) -> RVec<f64>
 // )]
 // fn init_rvec_rvec<F>(n: usize, mut f: F) -> RVec<RVec<f64>>
 // where
@@ -154,9 +152,9 @@ where
     $wk2(v, n) = [v == n];
 )]
 #[spec(fn(n: usize, f:F) -> RVec<RVec<f64>>[#v]
-       requires $wk0(n)
-       ensures $wk2(v, n)
-       where F: FnMut(usize{v: $wk1(v, n)}) -> RVec<f64>
+       requires $wk0()[n]
+       ensures $wk2(v)[n]
+       where F: FnMut(usize{v: $wk1(v)[n]}) -> RVec<f64>
 )]
 fn init2<F>(n: usize, mut f: F) -> RVec<RVec<f64>>
 where
@@ -170,9 +168,9 @@ where
     $wk1(v, input_size, output_size) = [v == output_size];
     $wk2(inner, v, input_size, output_size) = [inner == input_size];
 )]
-#[spec(fn(input_size: usize, output_size: usize) -> RVec<RVec<f64>{inner: $wk2(inner, v, input_size, output_size)}>[#v]
-       requires $wk0(input_size, output_size)
-       ensures $wk1(v, input_size, output_size)
+#[spec(fn(input_size: usize, output_size: usize) -> RVec<RVec<f64>{inner: $wk2(inner)[v, input_size, output_size]}>[#v]
+       requires $wk0()[input_size, output_size]
+       ensures $wk1(v)[input_size, output_size]
 )]
 fn mk_weights(input_size: usize, output_size: usize) -> RVec<RVec<f64>> {
     let mut rng = rand::thread_rng();
@@ -189,8 +187,8 @@ impl Layer {
         $wk1(l, i, o) = [l == Layer{ i : i, o : o }];
     )]
     #[spec(fn(i: usize, o: usize) -> Layer[#l]
-           requires $wk0(i, o)
-           ensures  $wk1(l, i, o)
+           requires $wk0()[i, o]
+           ensures  $wk1(l)[i, o]
     )]
     fn new(i: usize, o: usize) -> Layer {
         let mut rng = rand::thread_rng();
@@ -210,8 +208,7 @@ impl Layer {
         $wk1(l, n) = [true];
     )]
     #[spec(fn(&mut Layer[@l], &RVec<f64>[@n])
-           requires $wk0(l, n)
-           ensures  $wk1(l, n)
+           requires $wk0()[l, n]
     )]
     fn forward(&mut self, input: &RVec<f64>) {
         spread_usize(0, self.num_outputs).for_each(|i| {
@@ -225,8 +222,8 @@ impl Layer {
         $wk1(v, l, m, n) = [v == l.i];
     )]
     #[spec(fn(&mut Layer[@l], &RVec<f64>[@m], &RVec<f64>[@n], _) -> RVec<f64>[#v]
-           requires $wk0(l, m, n)
-           ensures  $wk1(v, l, m, n)
+           requires $wk0()[l, m, n]
+           ensures  $wk1(v)[l, m, n]
     )]
     fn backward(&mut self, inputs: &RVec<f64>, error: &RVec<f64>, learning_rate: f64) -> RVec<f64> {
         let mut input_error = rvec![0.0; inputs.len()];
@@ -246,8 +243,7 @@ impl Layer {
     $wk1(n, m) = [true];
 )]
 #[spec(fn(&RVec<f64>[@n], &RVec<f64>[@m]) -> f64
-       requires $wk0(n, m)
-       ensures  $wk1(n, m)
+       requires $wk0()[n, m]
 )]
 fn mean_squared_error(predicted: &RVec<f64>, actual: &RVec<f64>) -> f64 {
     spread_usize(0, predicted.len())
@@ -274,8 +270,8 @@ impl NeuralNetwork {
         $wk1(n, i, o) = [n == NeuralNetwork{ i : i, o : o }];
     )]
     #[spec(fn(input_size: usize, hidden_sizes: &[usize], output_size: usize) -> NeuralNetwork[#n]
-           requires $wk0(input_size, output_size)
-           ensures  $wk1(n, input_size, output_size)
+           requires $wk0()[input_size, output_size]
+           ensures  $wk1(n)[input_size, output_size]
     )]
     fn new(input_size: usize, hidden_sizes: &[usize], output_size: usize) -> NeuralNetwork {
         if hidden_sizes.len() == 0 {
@@ -293,8 +289,8 @@ impl NeuralNetwork {
         $wk1(v, i, o, n) = [v == o];
     )]
     #[spec(fn(&mut NeuralNetwork[@i, @o], &RVec<f64>[@n]) -> RVec<f64>[#v]
-           requires $wk0(i, o, n)
-           ensures  $wk1(v, i, o, n)
+           requires $wk0()[i, o, n]
+           ensures  $wk1(v)[i, o, n]
     )]
     fn forward(&mut self, input: &RVec<f64>) -> RVec<f64> {
         match self {
@@ -316,8 +312,8 @@ impl NeuralNetwork {
         $wk1(v, i, o, n, m) = [v == i];
     )]
     #[spec(fn(&mut NeuralNetwork[@i, @o], &RVec<f64>[@n], &RVec<f64>[@m], _) -> RVec<f64>[#v]
-           requires $wk0(i, o, n, m)
-           ensures  $wk1(v, i, o, n, m)
+           requires $wk0()[i, o, n, m]
+           ensures  $wk1(v)[i, o, n, m]
     )]
     fn backward(
         &mut self,
