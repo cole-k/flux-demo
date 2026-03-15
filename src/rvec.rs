@@ -219,7 +219,7 @@ impl<T> std::ops::IndexMut<usize> for RVec<T> {
     }
 }
 
-#[assoc(fn with_size(self: Self, n:int) -> bool { self.len == n })]
+// #[assoc(fn with_size(self: Self, n:int) -> bool { self.len == n })]
 impl<T> FromIterator<T> for RVec<T> {
     #[trusted]
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> RVec<T> {
@@ -237,6 +237,7 @@ impl<T, I> AsRVec<T> for I
 where
     I: Iterator<Item = T>,
 {
+    #[trusted]
     #[spec(fn(Self[@s]) -> RVec<T>[<Self as Iterator>::size(s)])]
     fn collect_rvec(self) -> RVec<T> {
         self.collect()

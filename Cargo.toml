@@ -13,9 +13,9 @@ enabled = true
 
 [dependencies]
 # flux-rs = { git = "https://github.com/flux-rs/flux" }
-flux-rs = { path = "/Users/cole/git/flux/lib/flux-rs" }
-flux-core = { path = "/Users/cole/git/flux/lib/flux-core" }
-flux-alloc = { path = "/Users/cole/git/flux/lib/flux-alloc" }
+flux-rs = { path = "/home/cole/research/flux/lib/flux-rs"}
+# flux-core = { path = "/home/cole/research/flux/lib/flux-core" }
+# flux-alloc = { git = "https://github.com/flux-rs/flux" }
 rand = "0.8"
 # im = "15.1.0"
 

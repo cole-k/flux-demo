@@ -64,13 +64,12 @@ struct Layer {
 
 #[vars(
     $wk0(n) = [true];
-    $wk1(v, n) = [0 <= v, v < n];
     $wk2(v, n) = [v == n];
 )]
 #[spec(fn(n: usize, f:F) -> RVec<A>[#v]
        requires $wk0(n)
        ensures $wk2(v, n)
-       where F: FnMut(usize{v: $wk1(v, n)}) -> A
+       where F: FnMut(usize) -> A
 )]
 fn init0<F, A>(n: usize, mut f: F) -> RVec<A>
 where
@@ -87,13 +86,12 @@ where
 
 #[vars(
     $wk0(n) = [true];
-    $wk1(v, n) = [0 <= v, v < n];
     $wk2(v, n) = [v == n];
 )]
 #[spec(fn(n: usize, f:F) -> RVec<T>[#v]
        requires $wk0(n)
        ensures $wk2(v, n)
-       where F: FnMut(usize{v: $wk1(v, n)}) -> T
+       where F: FnMut(usize) -> T
 )]
 fn init<T, F>(n: usize, mut f: F) -> RVec<T>
 where
@@ -150,13 +148,12 @@ where
 
 #[vars(
     $wk0(n) = [true];
-    $wk1(v, n) = [0 <= v, v < n];
     $wk2(v, n) = [v == n];
 )]
 #[spec(fn(n: usize, f:F) -> RVec<RVec<f64>>[#v]
        requires $wk0(n)
        ensures $wk2(v, n)
-       where F: FnMut(usize{v: $wk1(v, n)}) -> RVec<f64>
+       where F: FnMut(usize) -> RVec<f64>
 )]
 fn init2<F>(n: usize, mut f: F) -> RVec<RVec<f64>>
 where

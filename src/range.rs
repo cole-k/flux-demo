@@ -1,6 +1,60 @@
 use flux_rs::attrs::*;
 use crate::rvec::RVec;
 
+#[extern_spec]
+#[refined_by(is_some: bool)]
+enum Option<T> {
+    #[variant(Option<T>[false])]
+    None,
+    #[variant((T) -> Option<T>[true])]
+    Some(T),
+}
+
+#[extern_spec]
+impl<T> Option<T> {
+    #[sig(fn(&Self[@b]) -> bool[b])]
+    const fn is_some(&self) -> bool;
+
+    #[sig(fn(&Self[@b]) -> bool[!b])]
+    const fn is_none(&self) -> bool;
+
+    #[sig(fn(Option<T>[true]) -> T)]
+    const fn unwrap(self) -> T;
+
+    #[sig(fn(&Self[@b]) -> Option<&T>[b])]
+    fn as_ref(&self) -> Option<&T>;
+
+    #[sig(fn(&mut Self[@b]) -> Option<&mut T>[b])]
+    fn as_mut(&mut self) -> Option<&mut T>;
+
+    #[sig(fn(&Self[@b]) -> &[T][if b { 1 } else { 0 }])]
+    fn as_slice(&self) -> &[T];
+
+    #[sig(fn(&mut Self[@b]) -> &mut [T][if b { 1 } else { 0 }])]
+    fn as_mut_slice(&mut self) -> &mut [T];
+}
+
+defs! {
+    fn default_iterator_size<T>(self: T) -> int;
+    fn default_iterator_done<T>(self: T) -> bool;
+    fn max(a: int, b: int) -> int { if a > b { a } else { b } }
+}
+
+#[extern_spec(core::iter)]
+#[assoc(
+    fn valid_item(self: Self, item: Self::Item) -> bool { true }
+    fn size(self: Self) -> int { default_iterator_size(self) }
+    fn done(self: Self) -> bool { default_iterator_done(self) }
+    fn step(self: Self, other: Self) -> bool { true }
+)]
+trait Iterator {
+    #[spec(
+        fn(self: &mut Self[@curr_s]) -> Option<Self::Item>[!<Self as Iterator>::done(curr_s)]
+        ensures self: Self{next_s: <Self as Iterator>::step(curr_s, next_s)}
+    )]
+    fn next(&mut self) -> Option<Self::Item>;
+}
+
 #[refined_by(start: int, end: int)]
 pub struct UsizeRange {
     #[field(usize[start])]

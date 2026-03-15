@@ -7,8 +7,8 @@ flux_rs::defs! {
     qualifier MyQ2(x: int, y: int, z: int) { x == y - z }
 }
 
-extern crate flux_alloc;
-extern crate flux_core;
+// extern crate flux_alloc;
+// extern crate flux_core;
 
 // pub mod anf;
 // pub mod arrays;
