@@ -20,7 +20,8 @@ flux_rs::defs! {
 // pub mod kmeans;
 // pub mod lists;
 // pub mod mapreduce;
-pub mod neural;
+pub mod mini_neural;
+// pub mod neural;
 pub mod rvec;
 // pub mod spec;
 // pub mod typestate;
